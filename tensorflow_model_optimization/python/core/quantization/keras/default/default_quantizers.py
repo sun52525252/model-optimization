@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Quantizers specific to TFLite.
+"""Quantizers specific to default behavior.
 
-Module: tfmot.quantization.keras.tflite
+Module: tfmot.quantization.keras.default
 """
 
 import tensorflow as tf
@@ -26,7 +26,7 @@ class ConvWeightsQuantizer(quantizers.LastValueQuantizer):
   """Quantizer for handling weights in Conv2D/DepthwiseConv2D layers."""
 
   def __init__(self):
-    """Construct LastValueQuantizer with params specific for TFLite Convs."""
+    """Construct LastValueQuantizer with params specific for Convs in default behavior."""
 
     super(ConvWeightsQuantizer, self).__init__(
         num_bits=8,

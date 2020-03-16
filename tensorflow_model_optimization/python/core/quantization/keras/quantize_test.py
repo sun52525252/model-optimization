@@ -27,7 +27,7 @@ from tensorflow_model_optimization.python.core.quantization.keras import quantiz
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_config as quantize_config_mod
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_layer
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_wrapper as quantize_wrapper_mod
-from tensorflow_model_optimization.python.core.quantization.keras.tflite import tflite_quantize_registry
+from tensorflow_model_optimization.python.core.quantization.keras.default import default_quantize_registry
 
 quantize_annotate_layer = quantize.quantize_annotate_layer
 quantize_annotate_model = quantize.quantize_annotate_model
@@ -290,7 +290,7 @@ class QuantizeApplyTest(tf.test.TestCase):
     self._assert_layer_quantized(
         annotated_model.layers[0], quantized_layer, ['activation'])
     self.assertIsInstance(quantized_layer.quantize_config,
-                          tflite_quantize_registry.TFLiteQuantizeConfig)
+                          default_quantize_registry.DefaultQuantizeConfig)
 
   def testQuantize_UsesQuantizeConfigFromUser_NoBuiltIn(self):
     annotated_model = keras.Sequential([

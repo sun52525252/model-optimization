@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Tests for TFLiteQuantizeRegistry."""
+"""Tests for DefaultQuantizeRegistry."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -23,7 +23,7 @@ import tensorflow as tf
 
 from tensorflow_model_optimization.python.core.keras import compat
 from tensorflow_model_optimization.python.core.quantization.keras import quantizers
-from tensorflow_model_optimization.python.core.quantization.keras.tflite import tflite_quantize_registry
+from tensorflow_model_optimization.python.core.quantization.keras.default import default_quantize_registry
 
 keras = tf.keras
 K = tf.keras.backend
@@ -77,11 +77,11 @@ class _TestHelper(object):
       self.assertAllEqual(a.numpy(), b.numpy())
 
 
-class TFLiteQuantizeRegistryTest(tf.test.TestCase, _TestHelper):
+class DefaultQuantizeRegistryTest(tf.test.TestCase, _TestHelper):
 
   def setUp(self):
-    super(TFLiteQuantizeRegistryTest, self).setUp()
-    self.quantize_registry = tflite_quantize_registry.TFLiteQuantizeRegistry()
+    super(DefaultQuantizeRegistryTest, self).setUp()
+    self.quantize_registry = default_quantize_registry.DefaultQuantizeRegistry()
 
   class CustomLayer(l.Layer):
     pass
@@ -222,12 +222,12 @@ class TFLiteQuantizeRegistryTest(tf.test.TestCase, _TestHelper):
         activation_layer)
 
     self.assertIsInstance(quantize_config,
-                          tflite_quantize_registry.ActivationQuantizeConfig)
+                          default_quantize_registry.ActivationQuantizeConfig)
     self._assert_activation_quantizers(
         quantize_config.get_output_quantizers(activation_layer))
 
 
-class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
+class DefaultQuantizeConfigTest(tf.test.TestCase, _TestHelper):
 
   def _simple_dense_layer(self):
     layer = l.Dense(2)
@@ -237,7 +237,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
   def testGetsQuantizeWeightsAndQuantizers(self):
     layer = self._simple_dense_layer()
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
     (weights, weight_quantizers) = self._convert_list(
         quantize_config.get_weights_and_quantizers(layer))
@@ -248,7 +248,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
   def testGetsQuantizeActivationsAndQuantizers(self):
     layer = self._simple_dense_layer()
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
     (activations, activation_quantizers) = self._convert_list(
         quantize_config.get_activations_and_quantizers(layer))
@@ -263,7 +263,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     layer = self._simple_dense_layer()
     quantize_kernel = K.variable(np.ones(layer.kernel.shape.as_list()))
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
     quantize_config.set_quantize_weights(layer, [quantize_kernel])
 
@@ -273,7 +273,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     layer = self._simple_dense_layer()
     quantize_activation = keras.activations.relu
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
     quantize_config.set_quantize_activations(layer, [quantize_activation])
 
@@ -283,7 +283,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     layer = self._simple_dense_layer()
     quantize_kernel = K.variable(np.ones(layer.kernel.shape.as_list()))
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
 
     with self.assertRaises(ValueError):
@@ -297,7 +297,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     layer = self._simple_dense_layer()
     quantize_kernel = K.variable(np.ones([1, 2]))
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
 
     with self.assertRaises(ValueError):
@@ -307,7 +307,7 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     layer = self._simple_dense_layer()
     quantize_activation = keras.activations.relu
 
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
 
     with self.assertRaises(ValueError):
@@ -319,8 +319,8 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
 
   def testGetsResultQuantizers_ReturnsQuantizer(self):
     layer = self._simple_dense_layer()
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig([], [],
-                                                                    True)
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig([], [],
+                                                                      True)
 
     output_quantizers = quantize_config.get_output_quantizers(layer)
 
@@ -329,19 +329,19 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
 
   def testGetsResultQuantizers_EmptyWhenFalse(self):
     layer = self._simple_dense_layer()
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig([], [],
-                                                                    False)
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig([], [],
+                                                                      False)
 
     output_quantizers = quantize_config.get_output_quantizers(layer)
 
     self.assertEqual([], output_quantizers)
 
   def testSerialization(self):
-    quantize_config = tflite_quantize_registry.TFLiteQuantizeConfig(
+    quantize_config = default_quantize_registry.DefaultQuantizeConfig(
         ['kernel'], ['activation'], False)
 
     expected_config = {
-        'class_name': 'TFLiteQuantizeConfig',
+        'class_name': 'DefaultQuantizeConfig',
         'config': {
             'weight_attrs': ['kernel'],
             'activation_attrs': ['activation'],
@@ -355,22 +355,22 @@ class TFLiteQuantizeConfigTest(tf.test.TestCase, _TestHelper):
     quantize_config_from_config = deserialize_keras_object(
         serialized_quantize_config,
         module_objects=globals(),
-        custom_objects=tflite_quantize_registry._types_dict())
+        custom_objects=default_quantize_registry._types_dict())
 
     self.assertEqual(quantize_config, quantize_config_from_config)
 
 
-class TFLiteQuantizeConfigRNNTest(tf.test.TestCase, _TestHelper):
+class DefaultQuantizeConfigRNNTest(tf.test.TestCase, _TestHelper):
 
   def setUp(self):
-    super(TFLiteQuantizeConfigRNNTest, self).setUp()
+    super(DefaultQuantizeConfigRNNTest, self).setUp()
 
     self.cell1 = l.LSTMCell(3)
     self.cell2 = l.GRUCell(2)
     self.layer = l.RNN([self.cell1, self.cell2])
     self.layer.build(input_shape=(3, 2))
 
-    self.quantize_config = tflite_quantize_registry.TFLiteQuantizeConfigRNN(
+    self.quantize_config = default_quantize_registry.DefaultQuantizeConfigRNN(
         [['kernel', 'recurrent_kernel'], ['kernel', 'recurrent_kernel']],
         [['activation', 'recurrent_activation'],
          ['activation', 'recurrent_activation']], False)
@@ -455,7 +455,7 @@ class TFLiteQuantizeConfigRNNTest(tf.test.TestCase, _TestHelper):
 
   def testSerialization(self):
     expected_config = {
-        'class_name': 'TFLiteQuantizeConfigRNN',
+        'class_name': 'DefaultQuantizeConfigRNN',
         'config': {
             'weight_attrs': [['kernel', 'recurrent_kernel'],
                              ['kernel', 'recurrent_kernel']],
@@ -471,7 +471,7 @@ class TFLiteQuantizeConfigRNNTest(tf.test.TestCase, _TestHelper):
     quantize_config_from_config = deserialize_keras_object(
         serialized_quantize_config,
         module_objects=globals(),
-        custom_objects=tflite_quantize_registry._types_dict())
+        custom_objects=default_quantize_registry._types_dict())
 
     self.assertEqual(self.quantize_config, quantize_config_from_config)
 
@@ -479,7 +479,7 @@ class TFLiteQuantizeConfigRNNTest(tf.test.TestCase, _TestHelper):
 class ActivationQuantizeConfigTest(tf.test.TestCase):
 
   def testRaisesErrorUnsupportedActivation(self):
-    quantize_config = tflite_quantize_registry.ActivationQuantizeConfig()
+    quantize_config = default_quantize_registry.ActivationQuantizeConfig()
 
     with self.assertRaises(ValueError):
       quantize_config.get_output_quantizers(keras.layers.Activation('tanh'))

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""QuantizeConfigs specific for TFLite."""
+"""Default QuantizeConfigs."""
 
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_config
 from tensorflow_model_optimization.python.core.quantization.keras import quantizers

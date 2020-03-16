@@ -14,7 +14,7 @@
 # ==============================================================================
 """Quantization registry which specifies how layers should be quantized.
 
-Module: tfmot.quantization.keras.tflite
+Module: tfmot.quantization.keras.default
 """
 
 from __future__ import absolute_import
@@ -26,9 +26,9 @@ import tensorflow as tf
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_config
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_registry
 from tensorflow_model_optimization.python.core.quantization.keras import quantizers
+from tensorflow_model_optimization.python.core.quantization.keras.default import default_quantize_configs
+from tensorflow_model_optimization.python.core.quantization.keras.default import default_quantizers
 from tensorflow_model_optimization.python.core.quantization.keras.layers import conv_batchnorm
-from tensorflow_model_optimization.python.core.quantization.keras.tflite import tflite_quantize_configs
-from tensorflow_model_optimization.python.core.quantization.keras.tflite import tflite_quantizers
 
 QuantizeConfig = quantize_config.QuantizeConfig
 
@@ -72,8 +72,8 @@ class _RNNHelper(object):
       return [rnn_layer.cell]
 
 
-class TFLiteQuantizeRegistry(quantize_registry.QuantizeRegistry, _RNNHelper):
-  """QuantizationRegistry for built-in Keras classes for TFLite scheme."""
+class DefaultQuantizeRegistry(quantize_registry.QuantizeRegistry, _RNNHelper):
+  """QuantizationRegistry for built-in Keras classes for Default scheme."""
 
   _LAYER_QUANTIZE_INFO = [
 
@@ -138,7 +138,7 @@ class TFLiteQuantizeRegistry(quantize_registry.QuantizeRegistry, _RNNHelper):
       _QuantizeInfo(layers.LocallyConnected2D, ['kernel'], ['activation']),
       _QuantizeInfo(layers.Add, [], [], True),
 
-      # Enable once verified with TFLite behavior.
+      # Enable once verified with Default behavior.
       # layers.Embedding: ['embeddings'],
       # layers.BatchNormalization: [],
 
@@ -228,9 +228,9 @@ class TFLiteQuantizeRegistry(quantize_registry.QuantizeRegistry, _RNNHelper):
     if isinstance(quantize_info, QuantizeConfig):
       return quantize_info
 
-    return TFLiteQuantizeConfig(quantize_info.weight_attrs,
-                                quantize_info.activation_attrs,
-                                quantize_info.quantize_output)
+    return DefaultQuantizeConfig(quantize_info.weight_attrs,
+                                 quantize_info.activation_attrs,
+                                 quantize_info.quantize_output)
 
   def get_quantize_config(self, layer):
     """Returns the quantization config for the given layer.
@@ -261,13 +261,13 @@ class TFLiteQuantizeRegistry(quantize_registry.QuantizeRegistry, _RNNHelper):
 
       # Result quantization for RNN isn't straight-forward like regular layers.
       # To implement during full RNN support.
-      return TFLiteQuantizeConfigRNN(weight_attrs, activation_attrs, False)
+      return DefaultQuantizeConfigRNN(weight_attrs, activation_attrs, False)
 
     # Should never come here.
     raise ValueError('Invalid Layer type {}'.format(layer.__class__))
 
 
-class TFLiteQuantizeConfig(QuantizeConfig):
+class DefaultQuantizeConfig(QuantizeConfig):
   """QuantizeConfig for non recurrent Keras layers."""
 
   def __init__(self, weight_attrs, activation_attrs, quantize_output):
@@ -325,13 +325,13 @@ class TFLiteQuantizeConfig(QuantizeConfig):
 
   @classmethod
   def from_config(cls, config):
-    """Instantiates a `TFLiteQuantizeConfig` from its config.
+    """Instantiates a `DefaultQuantizeConfig` from its config.
 
     Args:
         config: Output of `get_config()`.
 
     Returns:
-        A `TFLiteQuantizeConfig` instance.
+        A `DefaultQuantizeConfig` instance.
     """
     return cls(**config)
 
@@ -346,7 +346,7 @@ class TFLiteQuantizeConfig(QuantizeConfig):
     }
 
   def __eq__(self, other):
-    if not isinstance(other, TFLiteQuantizeConfig):
+    if not isinstance(other, DefaultQuantizeConfig):
       return False
 
     return (self.weight_attrs == other.weight_attrs and
@@ -359,7 +359,7 @@ class TFLiteQuantizeConfig(QuantizeConfig):
     return not self.__eq__(other)
 
 
-class TFLiteQuantizeConfigRNN(TFLiteQuantizeConfig, _RNNHelper):
+class DefaultQuantizeConfigRNN(DefaultQuantizeConfig, _RNNHelper):
   """QuantizeConfig for RNN layers."""
 
   def get_weights_and_quantizers(self, layer):
@@ -476,22 +476,22 @@ class ActivationQuantizeConfig(QuantizeConfig):
     return {}
 
 
-class ConvQuantizeConfig(TFLiteQuantizeConfig):
+class ConvQuantizeConfig(DefaultQuantizeConfig):
   """QuantizeConfig for Conv2D/DepthwiseConv2D layers."""
 
   def __init__(self, weight_attrs, activation_attrs, quantize_output):
     super(ConvQuantizeConfig, self).__init__(weight_attrs, activation_attrs,
                                              quantize_output)
 
-    self.weight_quantizer = tflite_quantizers.ConvWeightsQuantizer()
+    self.weight_quantizer = default_quantizers.ConvWeightsQuantizer()
 
 
 def _types_dict():
   return {
-      'TFLiteQuantizeConfig': TFLiteQuantizeConfig,
-      'TFLiteQuantizeConfigRNN': TFLiteQuantizeConfigRNN,
+      'DefaultQuantizeConfig': DefaultQuantizeConfig,
+      'DefaultQuantizeConfigRNN': DefaultQuantizeConfigRNN,
       'ActivationQuantizeConfig': ActivationQuantizeConfig,
       'ConvQuantizeConfig': ConvQuantizeConfig,
-      'NoOpQuantizeConfig': tflite_quantize_configs.NoOpQuantizeConfig,
-      'OutputQuantizeConfig': tflite_quantize_configs.OutputQuantizeConfig
+      'NoOpQuantizeConfig': default_quantize_configs.NoOpQuantizeConfig,
+      'OutputQuantizeConfig': default_quantize_configs.OutputQuantizeConfig
   }

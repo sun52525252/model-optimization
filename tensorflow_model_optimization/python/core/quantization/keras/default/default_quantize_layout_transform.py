@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Layout Transformation for quantization in TFLite.
+"""Default layout transformation for quantization.
 
-Module: tfmot.quantization.keras.tflite
+Module: tfmot.quantization.keras.default
 """
 
 from __future__ import absolute_import
@@ -24,18 +24,18 @@ from __future__ import print_function
 import tensorflow as tf
 
 from tensorflow_model_optimization.python.core.quantization.keras import quantize_layout_transform
+from tensorflow_model_optimization.python.core.quantization.keras.default import default_transforms
 from tensorflow_model_optimization.python.core.quantization.keras.graph_transformations import model_transformer
-from tensorflow_model_optimization.python.core.quantization.keras.tflite import tflite_transforms
 
 keras = tf.keras
 
 
-class TFLiteQuantizeLayoutTransform(
+class DefaultQuantizeLayoutTransform(
     quantize_layout_transform.QuantizeLayoutTransform):
-  """Model transformations for TFLite."""
+  """Default model transformations."""
 
   def apply(self, model, layer_quantize_map):
-    """Implement TFLite transforms.
+    """Implement default transforms.
 
     Currently this means the following.
       1. Pull activations into layers, and apply fuse activations. (TODO)
@@ -54,15 +54,15 @@ class TFLiteQuantizeLayoutTransform(
     """
 
     transforms = [
-        tflite_transforms.InputLayerQuantize(),
-        tflite_transforms.Conv2DBatchNormReLUQuantize(),
-        tflite_transforms.Conv2DBatchNormActivationQuantize(),
-        tflite_transforms.Conv2DBatchNormQuantize(),
-        tflite_transforms.ConcatTransform6Inputs(),
-        tflite_transforms.ConcatTransform5Inputs(),
-        tflite_transforms.ConcatTransform4Inputs(),
-        tflite_transforms.ConcatTransform3Inputs(),
-        tflite_transforms.ConcatTransform(),
+        default_transforms.InputLayerQuantize(),
+        default_transforms.Conv2DBatchNormReLUQuantize(),
+        default_transforms.Conv2DBatchNormActivationQuantize(),
+        default_transforms.Conv2DBatchNormQuantize(),
+        default_transforms.ConcatTransform6Inputs(),
+        default_transforms.ConcatTransform5Inputs(),
+        default_transforms.ConcatTransform4Inputs(),
+        default_transforms.ConcatTransform3Inputs(),
+        default_transforms.ConcatTransform(),
     ]
 
     return model_transformer.ModelTransformer(
